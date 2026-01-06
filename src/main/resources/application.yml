@@ -1,1 +1,27 @@
-spring.application.name=xksms-weather-java
+server:
+  port: 8758
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local} # 默认启动 prod 生产环境
+  application:
+    name: xksms-weather-java
+  threads:
+    virtual:
+      # 开启 JDK 21 虚拟线程，大幅提升 I/O 并发
+      enabled: true
+
+
+logging:
+  level:
+    com.xksms: DEBUG # 开启你项目代码的调试日志
+    org.springframework.web.client.RestClient: DEBUG
+    org.apache.hc.client5.http: DEBUG # 如果底层用了 Apache HttpClient
+
+
+qweather:
+  private-key: "REPLACE_ME_WITH_REAL_PRIVATE_KEY"
+  api-host: "REPLACE_ME_WITH_REAL_HOST"
+  kid: "REPLACE_ME_WITH_REAL_KID"
+  project-id: "REPLACE_ME_WITH_REAL_PROJECT_ID"
+  cache-ttl-hours: 1
