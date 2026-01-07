@@ -15,6 +15,7 @@ public class GeoService {
 
     public String getGeoJson(String adcode) {
         String fileName = adcode + "_full.json";
+        String fileName2 = adcode + ".json";
         Path filePath = Paths.get(STORAGE_PATH, fileName);
 
         // 1. 检查本地是否存在文件
@@ -36,7 +37,17 @@ public class GeoService {
                 return data;
             }
         } catch (Exception e) {
-            System.err.println("从外部抓取数据失败: " + e.getMessage());
+            //第一次失败，尝试第二个文件名
+            try {
+                String url2 = "https://geo.datav.aliyun.com/areas_v3/bound/" + fileName2;
+                String data2 = restTemplate.getForObject(url2, String.class);
+                if (data2 != null) {
+                    saveToFile(Paths.get(STORAGE_PATH, fileName2), data2);
+                    return data2;
+                }
+            } catch (Exception ex) {
+                System.err.println("从外部抓取数据失败: " + ex.getMessage());
+            }
         }
 
         return null; 
