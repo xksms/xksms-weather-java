@@ -1,19 +1,27 @@
 package com.xksms.weather.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Slf4j
 @Service
 public class GeoService {
     // 定义文件存储路径（存放在项目根目录下的 data/geo 文件夹中）
     private static final String STORAGE_PATH = "data/geo/";
     private final RestTemplate restTemplate = new RestTemplate();
 
+    // value 对应配置中的缓存名称，key 是参数 adcode
+    @Cacheable(value = "geoData", key = "#adcode", unless = "#result == null")
     public String getGeoJson(String adcode) {
+        //System.out.println("--- 内存无缓存，开始读取磁盘或网络: " + adcode + " ---");
+        log.info("--- 内存无缓存，开始读取磁盘或网络: {} ---", adcode);
         String fileName = adcode + "_full.json";
         String fileName2 = adcode + ".json";
         Path filePath = Paths.get(STORAGE_PATH, fileName);
@@ -23,7 +31,8 @@ public class GeoService {
             try {
                 return Files.readString(filePath);
             } catch (IOException e) {
-                System.err.println("读取本地缓存失败: " + e.getMessage());
+//                System.err.println("读取本地缓存失败: " + e.getMessage());
+                log.error("读取本地缓存失败: {}", e.getMessage());
             }
         }
 
@@ -46,7 +55,8 @@ public class GeoService {
                     return data2;
                 }
             } catch (Exception ex) {
-                System.err.println("从外部抓取数据失败: " + ex.getMessage());
+//                System.err.println("从外部抓取数据失败: " + ex.getMessage());
+                log.error("从外部抓取数据失败: {}", ex.getMessage());
             }
         }
 
@@ -57,7 +67,8 @@ public class GeoService {
         try {
             Files.createDirectories(path.getParent()); // 确保文件夹存在
             Files.writeString(path, content);
-            System.out.println("成功持久化地理数据: " + path.getFileName());
+//            System.out.println("成功持久化地理数据: " + path.getFileName());
+            log.info("成功持久化地理数据: {}", path.getFileName());
         } catch (IOException e) {
             e.printStackTrace();
         }
